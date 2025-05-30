@@ -4,7 +4,7 @@ import json
 from hashlib import sha256
 from openai import OpenAI
 from pinecone import Pinecone
-from chunker import chunk_text
+from .chunker import chunk_text
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
