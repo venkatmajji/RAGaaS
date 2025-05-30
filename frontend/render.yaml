@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: rag-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: PINECONE_API_KEY
+        sync: false
+      - key: PINECONE_INDEX_NAME
+        sync: false
+    plan: free
+
+  - type: web
+    name: rag-ui
+    env: static
+    staticPublishPath: frontend/dist
+    buildCommand: npm install && npm run build
+    envVars:
+      - key: NODE_VERSION
+        value: 18
