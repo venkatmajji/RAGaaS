@@ -49,7 +49,7 @@ export default function App() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto font-sans">
-      <h1 className="text-2xl font-bold text-blue-700 mb-4">CloudDocs AI</h1>
+      <h1 className="text-2xl font-bold text-blue-700 mb-4">RAGaaS AI</h1>
 
       {/* Upload */}
       <div className="mb-6">
