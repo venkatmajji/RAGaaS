@@ -4,7 +4,9 @@ services:
     env: static
     staticPublishPath: frontend/dist
     buildCommand: npm install && npm run build
+    startCommand: serve frontend/dist
     envVars:
       - key: NODE_VERSION
         value: 18
     plan: free
+ 
