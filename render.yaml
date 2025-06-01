@@ -1,13 +1,5 @@
 services:
-  - type: web
-    name: ragaas-ui
-    env: static
-    staticPublishPath: frontend/dist
-    buildCommand: npm install && npm run build
-    envVars:
-      - key: NODE_VERSION
-        value: 18
-    plan: free
+  
   - type: web
     name: ragaas-api
     runtime: python
