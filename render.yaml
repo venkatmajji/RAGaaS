@@ -1,5 +1,14 @@
 services:
   - type: web
+    name: ragaas-ui
+    env: static
+    staticPublishPath: frontend/dist
+    buildCommand: npm install && npm run build
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+    plan: free
+  - type: web
     name: ragaas-api
     runtime: python
     buildCommand: pip install -r requirements.txt
@@ -18,12 +27,4 @@ services:
     plan: free
     autoDeploy: true
 
-  - type: web
-    name: ragaas-ui
-    env: static
-    staticPublishPath: frontend/dist
-    buildCommand: npm install && npm run build
-    envVars:
-      - key: NODE_VERSION
-        value: 18
-    plan:
+
