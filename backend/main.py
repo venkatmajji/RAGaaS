@@ -31,9 +31,15 @@ def health():
 # --------- Upload ----------
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
-    contents = await file.read()
-    result = embed_and_store(contents, file.filename, user_id)
-    return result
+    try:
+        contents = await file.read()
+        print(f"[UPLOAD] Filename: {file.filename}, User: {user_id}")
+        result = embed_and_store(contents, file.filename, user_id)
+        return result
+    except Exception as e:
+        print(f"[UPLOAD ERROR] {e}")
+        raise HTTPException(status_code=500, detail="Upload failed.")
+
 
 # --------- Ask -------------
 class AskRequest(BaseModel):
