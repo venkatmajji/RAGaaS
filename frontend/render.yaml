@@ -12,12 +12,3 @@ services:
       - key: PINECONE_INDEX_NAME
         sync: false
     plan: free
-
-  - type: web
-    name: rag-ui
-    env: static
-    staticPublishPath: frontend/dist
-    buildCommand: npm install && npm run build
-    envVars:
-      - key: NODE_VERSION
-        value: 18
