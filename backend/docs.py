@@ -35,3 +35,19 @@ def delete_user_document(user_id, doc_id):
         raise HTTPException(status_code=404, detail="No vectors found for doc")
     index.delete(ids=to_delete, namespace=user_id)
     return {"deleted": len(to_delete)}
+
+def toggle_public(doc_id: str, is_public: bool, user_id: str):
+    try:
+        index.update(
+            id=doc_id,
+            set_metadata={"is_public": is_public}
+        )
+        return {"status": "success", "doc_id": doc_id, "is_public": is_public}
+    except Exception as e:
+        return {"error": f"Toggle failed: {str(e)}"}
+
+# 📊 Track public usage (optional analytics)
+def track_usage(doc_id: str):
+    # Optionally increment usage count in external DB or log
+    print(f"[Usage] Public chat accessed for doc_id: {doc_id}")
+    return {"status": "tracked"}
