@@ -1,3 +1,5 @@
+# backend/ask.py 
+
 import os
 from openai import OpenAI
 from pinecone import Pinecone
@@ -13,7 +15,7 @@ embedding_model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 def answer_question(query: str, user_id: str = "guest", doc_id: str = None):
     print(f"[ASK] User: {user_id} | Question: {query}")
 
-    # Step 1: Embed the query
+    # Step 1: Embed query
     try:
         embedding = client.embeddings.create(
             input=[query],
@@ -22,7 +24,7 @@ def answer_question(query: str, user_id: str = "guest", doc_id: str = None):
     except Exception as e:
         return {"error": f"Embedding failed: {str(e)}"}
 
-    # Step 2: Query Pinecone
+    # Step 2: Pinecone query
     try:
         query_filter = {"user_id": user_id}
         if doc_id:
@@ -30,29 +32,30 @@ def answer_question(query: str, user_id: str = "guest", doc_id: str = None):
 
         results = index.query(
             vector=embedding,
-            top_k=5,
+            top_k=10,  # 🔼 more matches
             include_metadata=True,
             filter=query_filter
         )
 
         matches = results.matches or []
         if not matches:
-            print("[ASK] No Pinecone matches found.")
+            print("[ASK] ❌ No matches found.")
             return {"answer": "No relevant documents found.", "sources": []}
 
-        # Log the top results
-        for i, match in enumerate(matches):
-            text = match.metadata.get("text", "")[:80].replace("\n", " ").strip()
-            print(f"[MATCH {i+1}] Score: {match.score:.2f} | Preview: {text}")
+        # ✅ Log match previews + scores
+        print(f"[ASK] ✅ Retrieved {len(matches)} matches from Pinecone:")
+        for i, m in enumerate(matches):
+            preview = m.metadata.get("text", "")[:80].replace("\n", " ").strip()
+            print(f"  Match {i+1}: Score={m.score:.4f} | Preview: {preview}")
 
-        contexts = [match.metadata.get("text", "") for match in matches]
-        context_block = "\n\n".join(contexts)
+        context_chunks = [m.metadata.get("text", "") for m in matches if "text" in m.metadata]
+        context_block = "\n\n".join(context_chunks)
 
     except Exception as e:
         return {"error": f"Pinecone query failed: {str(e)}"}
 
-    # Step 3: Generate GPT response
-    prompt = f"""You are a helpful assistant. Use the following extracted document snippets to answer the question accurately.
+    # Step 3: GPT-4 with context
+    prompt = f"""You are a helpful assistant. Use the following document excerpts to answer the question.
 
 {context_block}
 
@@ -70,6 +73,6 @@ A:"""
         return {"error": f"OpenAI completion failed: {str(e)}"}
 
     return {
-        "answer": answer,
+        "answer": answer if answer else "No meaningful answer generated.",
         "sources": [m.metadata.get("filename", "N/A") for m in matches]
     }
