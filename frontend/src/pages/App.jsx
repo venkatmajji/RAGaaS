@@ -8,23 +8,36 @@ export default function App() {
 
   const API_BASE = "https://raagas.onrender.com"; // 🧠 Update this if you use a custom domain later
 
-  const upload = async () => {
-    if (!file) return alert("Please select a file to upload.");
-    const form = new FormData();
-    form.append("file", file);
+ const upload = async () => {
+  if (!file) return alert("Please select a file to upload.");
+  const form = new FormData();
+  form.append("file", file);
 
-    try {
-      const res = await fetch(`${API_BASE}/upload`, {
-        method: "POST",
-        body: form,
-      });
-      const data = await res.json();
-      alert("✅ Uploaded: " + JSON.stringify(data));
-    } catch (err) {
-      alert("❌ Upload failed.");
-      console.error(err);
+  const uploadUrl = `${API_BASE}/upload`;
+  console.log("Uploading to:", uploadUrl);
+  console.log("File:", file.name);
+
+  try {
+    const res = await fetch(uploadUrl, {
+      method: "POST",
+      body: form,
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error(`❌ Server responded with ${res.status}: ${errText}`);
+      alert(`Upload failed with ${res.status}: ${errText}`);
+      return;
     }
-  };
+
+    const data = await res.json();
+    alert("✅ Uploaded: " + JSON.stringify(data));
+  } catch (err) {
+    alert("❌ Upload request failed.");
+    console.error("Upload error:", err);
+  }
+};
+
 
   const ask = async () => {
     if (!question.trim()) return alert("Please enter a question.");
