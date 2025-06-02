@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
+from parser import extract_text
 
 # Local imports (relative or absolute)
 from .auth import get_current_user
@@ -33,9 +34,14 @@ def health():
 async def upload_file(file: UploadFile = File(...), user_id: str = Depends(get_current_user)):
     try:
         contents = await file.read()
-        print(f"[UPLOAD] Filename: {file.filename}, User: {user_id}")
-        result = embed_and_store(contents, file.filename, user_id)
+        text = extract_text(file.filename, contents)
+
+        if not text:
+            raise ValueError("Unsupported or unreadable file.")
+
+        result = embed_and_store(text, file.filename, user_id)
         return result
+
     except Exception as e:
         print(f"[UPLOAD ERROR] {e}")
         raise HTTPException(status_code=500, detail="Upload failed.")
