@@ -20,9 +20,9 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://ragaas-ui.onrender.com/*"],
+    allow_origins=["https://ragaas-ui.onrender.com"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["upload"],
     allow_headers=["*"]
 )
 
