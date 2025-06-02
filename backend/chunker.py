@@ -7,9 +7,6 @@ MAX_TOKENS = 750
 encoding = tiktoken.encoding_for_model("text-embedding-3-small")
 
 def chunk_text(text: str, max_tokens: int = MAX_TOKENS) -> list[str]:
-    """
-    Splits the input text into chunks of approximately `max_tokens` tokens each.
-    """
     if not isinstance(text, str):
         raise TypeError("Text must be a decoded string, not bytes.")
 
@@ -18,10 +15,18 @@ def chunk_text(text: str, max_tokens: int = MAX_TOKENS) -> list[str]:
 
     print(f"[CHUNKER] Total tokens: {total_tokens}, Chunk size: {max_tokens}")
 
-    chunks = [
-        encoding.decode(tokens[i:i + max_tokens])
-        for i in range(0, total_tokens, max_tokens)
-    ]
+    chunks = []
+    for i in range(0, total_tokens, max_tokens):
+        token_slice = tokens[i:i + max_tokens]
+        try:
+            chunk = encoding.decode(token_slice).strip()
+        except Exception as e:
+            print(f"[CHUNKER] Decode error: {e}")
+            continue
 
-    print(f"[CHUNKER] Generated {len(chunks)} chunks.")
+        if chunk and len(chunk) > 10:
+            chunks.append(chunk)
+
+    print(f"[CHUNKER] Generated {len(chunks)} clean chunks.")
     return chunks
+
