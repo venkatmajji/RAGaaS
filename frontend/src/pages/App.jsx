@@ -6,7 +6,7 @@ export default function App() {
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const API_BASE = "https://raagas.onrender.com"; // 🧠 Update this if you use a custom domain later
+  const API_BASE = "https://ragaas.onrender.com"; // 🧠 Update this if you use a custom domain later
 
  const upload = async () => {
   if (!file) return alert("Please select a file to upload.");
