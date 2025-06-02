@@ -13,14 +13,43 @@ index = pc.Index(os.getenv("PINECONE_INDEX_NAME"))
 def embed_and_store(content, filename, user_id):
     chunks = chunk_text(content, max_tokens=750)
     vectors = []
-    for i, chunk in enumerate(chunks):
-        response = client.embeddings.create(
-            input=[chunk],
-            model=os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
-        )
-        vector = response.data[0].embedding
-        doc_id = sha256(f"{user_id}-{filename}-{i}".encode()).hexdigest()
-        vectors.append((doc_id, vector, {"filename": filename, "user_id": user_id, "chunk": i}))
+    failed = 0
 
-    index.upsert(vectors=vectors, namespace=user_id)
-    return {"status": "embedded", "chunks": len(vectors)}
+    for i, chunk in enumerate(chunks):
+        chunk_preview = chunk[:120].replace("\n", " ").strip()
+        print(f"[EMBED] Chunk {i+1}/{len(chunks)}: {chunk_preview}...")
+
+        if len(chunk) < 10:
+            print(f"[EMBED] Skipping short chunk {i+1}")
+            continue
+
+        try:
+            response = client.embeddings.create(
+                input=[chunk],
+                model=os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+            )
+            vector = response.data[0].embedding
+            doc_id = sha256(f"{user_id}-{filename}-{i}".encode()).hexdigest()
+
+            metadata = {
+                "filename": filename,
+                "user_id": user_id,
+                "chunk": i,
+                "text": chunk_preview
+            }
+
+            vectors.append((doc_id, vector, metadata))
+
+        except Exception as e:
+            print(f"[EMBED ERROR] Chunk {i+1} failed: {e}")
+            failed += 1
+
+    if vectors:
+        index.upsert(vectors=vectors, namespace=user_id)
+        print(f"[EMBED] ✅ Upserted {len(vectors)} chunks to Pinecone.")
+
+    return {
+        "status": "embedded",
+        "chunks": len(vectors),
+        "failed": failed
+    }
