@@ -5,13 +5,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Initialize OpenAI and Pinecone clients
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index = pc.Index(os.getenv("PINECONE_INDEX_NAME"))
 embedding_model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 
 def answer_question(query: str, user_id: str = "guest", doc_id: str = None):
+    print(f"[ASK] User: {user_id} | Question: {query}")
+
     # Step 1: Embed the query
     try:
         embedding = client.embeddings.create(
@@ -21,7 +22,7 @@ def answer_question(query: str, user_id: str = "guest", doc_id: str = None):
     except Exception as e:
         return {"error": f"Embedding failed: {str(e)}"}
 
-    # Step 2: Query Pinecone with optional filtering
+    # Step 2: Query Pinecone
     try:
         query_filter = {"user_id": user_id}
         if doc_id:
@@ -35,14 +36,23 @@ def answer_question(query: str, user_id: str = "guest", doc_id: str = None):
         )
 
         matches = results.matches or []
-        contexts = [f"{m.metadata.get('title', '')}\n{m.metadata.get('url', '')}" for m in matches]
-        context_block = "\n\n".join(contexts) if contexts else "No matching context found."
+        if not matches:
+            print("[ASK] No Pinecone matches found.")
+            return {"answer": "No relevant documents found.", "sources": []}
+
+        # Log the top results
+        for i, match in enumerate(matches):
+            text = match.metadata.get("text", "")[:80].replace("\n", " ").strip()
+            print(f"[MATCH {i+1}] Score: {match.score:.2f} | Preview: {text}")
+
+        contexts = [match.metadata.get("text", "") for match in matches]
+        context_block = "\n\n".join(contexts)
 
     except Exception as e:
         return {"error": f"Pinecone query failed: {str(e)}"}
 
-    # Step 3: Generate answer using GPT
-    prompt = f"""You are a helpful assistant. Use the following documentation snippets to answer the question as accurately as possible.
+    # Step 3: Generate GPT response
+    prompt = f"""You are a helpful assistant. Use the following extracted document snippets to answer the question accurately.
 
 {context_block}
 
@@ -61,5 +71,5 @@ A:"""
 
     return {
         "answer": answer,
-        "sources": contexts
+        "sources": [m.metadata.get("filename", "N/A") for m in matches]
     }
