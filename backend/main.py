@@ -22,13 +22,13 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://ragaas-ui.onrender.com"],
     allow_credentials=True,
-    allow_methods=["upload"],
+    allow_methods=["*"],
     allow_headers=["*"]
 )
 
 @app.get("/")
 def health():
-    return {"status": "RAG-as-a-Service backend live ✅"}
+    return {"status": "GET: RAG-as-a-Service backend live, use POST  method for any other actions ✅"}
 
 # --------- Upload ----------
 @app.post("/upload")
