@@ -1,5 +1,3 @@
-# backend/ask.py 
-
 import os
 from openai import OpenAI
 from pinecone import Pinecone
@@ -15,7 +13,7 @@ embedding_model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 def answer_question(query: str, user_id: str = "guest", doc_id: str = None):
     print(f"[ASK] User: {user_id} | Question: {query}")
 
-    # Step 1: Embed query
+    # Step 1: Embed the question
     try:
         embedding = client.embeddings.create(
             input=[query],
@@ -24,7 +22,7 @@ def answer_question(query: str, user_id: str = "guest", doc_id: str = None):
     except Exception as e:
         return {"error": f"Embedding failed: {str(e)}"}
 
-    # Step 2: Pinecone query
+    # Step 2: Query Pinecone
     try:
         query_filter = {"user_id": user_id}
         if doc_id:
@@ -32,29 +30,49 @@ def answer_question(query: str, user_id: str = "guest", doc_id: str = None):
 
         results = index.query(
             vector=embedding,
-            top_k=10,  # 🔼 more matches
+            top_k=10,
             include_metadata=True,
-            filter=query_filter
+            filter=query_filter,
+            namespace=user_id
         )
 
         matches = results.matches or []
-        if not matches:
-            print("[ASK] ❌ No matches found.")
-            return {"answer": "No relevant documents found.", "sources": []}
 
-        # ✅ Log match previews + scores
-        print(f"[ASK] ✅ Retrieved {len(matches)} matches from Pinecone:")
+        # Log raw matches
         for i, m in enumerate(matches):
             preview = m.metadata.get("text", "")[:80].replace("\n", " ").strip()
-            print(f"  Match {i+1}: Score={m.score:.4f} | Preview: {preview}")
+            print(f"🔍 Match {i+1} | Score={m.score:.4f} | {preview}")
 
-        context_chunks = [m.metadata.get("text", "") for m in matches if "text" in m.metadata]
+        # Fallback: keyword scan if no matches
+        if not matches:
+            print("⚠️ No semantic matches. Attempting keyword fallback...")
+            all_results = index.query(
+                vector=embedding,
+                top_k=50,
+                include_metadata=True,
+                filter={"user_id": user_id},
+                namespace=user_id
+            ).matches
+
+            keyword = query.lower()
+            matches = [
+                m for m in all_results
+                if keyword in m.metadata.get("text", "").lower()
+            ]
+
+            if matches:
+                print(f"✅ Keyword fallback found {len(matches)} matches.")
+            else:
+                return {"answer": "No relevant documents found.", "sources": []}
+
+        # Step 3: Prepare context for GPT
+        context_chunks = [m.metadata.get("text", "") for m in matches]
         context_block = "\n\n".join(context_chunks)
 
     except Exception as e:
         return {"error": f"Pinecone query failed: {str(e)}"}
 
-    # Step 3: GPT-4 with context
+    # Step 4: Call OpenAI GPT
     prompt = f"""You are a helpful assistant. Use the following document excerpts to answer the question.
 
 {context_block}
