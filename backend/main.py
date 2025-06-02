@@ -26,6 +26,11 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+@app.options("/{rest_of_path:path}")
+async def preflight_handler():
+    return {"message": "Preflight OK"}
+
+
 @app.get("/")
 def health():
     return {"status": "GET: RAG-as-a-Service backend live, use POST  method for any other actions ✅"}
