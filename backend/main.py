@@ -5,13 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
-from parser import extract_text
+
 
 # Local imports (relative or absolute)
 from .auth import get_current_user
 from .embed import embed_and_store
 from .docs import toggle_public, track_usage
 from .ask import answer_question
+from .parser import extract_text
 
 load_dotenv()
 
