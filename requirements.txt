@@ -13,4 +13,5 @@ httpx
 isort
 mypy
 python-multipart
+python-docx
 
