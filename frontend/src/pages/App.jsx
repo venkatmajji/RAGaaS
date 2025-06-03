@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from .supabaseClient;
+import { supabase } from "./src/pagessupabaseClient";
 import LoginModal from "./../../components/LoginModal";
 
 export default function App() {
