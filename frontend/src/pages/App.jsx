@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from .supabaseClient;
-import LoginModal from .LoginModal;
+import { supabase } from "./src/pages/supabaseClient";
+import LoginModal from "./src/pages/LoginModal";
 
 export default function App() {
   const [file, setFile] = useState(null);
