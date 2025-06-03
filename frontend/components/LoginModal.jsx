@@ -1,7 +1,7 @@
 // frontend/components/LoginModal.jsx
 import { useEffect } from 'react';
 import { Auth } from '@supabase/auth-ui-react';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../src/pages/supabaseClient';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 
 export default function LoginModal({ open, onClose }) {
