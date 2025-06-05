@@ -6,6 +6,7 @@ pinecone>=3.0.0
 PyPDF2
 tiktoken
 aiofiles
+requests
 # Dev/testing tools
 black
 pytest
@@ -14,4 +15,6 @@ isort
 mypy
 python-multipart
 python-docx
+
+
 
