@@ -1,7 +1,7 @@
 // components/Header.jsx
 
 import React, { useState, useEffect } from "react";
-import { supabase } from "./src/pages/supabaseClient";
+import { supabase } from "../src/pages/supabaseClient";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 
